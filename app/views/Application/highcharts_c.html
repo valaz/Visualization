@@ -1,6 +1,9 @@
 #{extends 'main.html' /}
 #{set title:'Stacked Bar Chart with Highcharts.js' /}
 <head>
+    <script src="/public/javascripts/highlight.min.js"></script>
+    <link href="/public/stylesheets/default.min.css" rel="stylesheet" />
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 <body>
@@ -60,6 +63,48 @@
         </div>
 
         <div id="code" class="tab-pane fade">
+            <pre><code class="xml">
+                &lt;div id="container" class="col-md-12" style="margin: 0 auto"&gt;&lt;/div&gt;
+                &lt;script&gt;
+                $(function () {
+                $('#container').highcharts({
+                chart: {
+                type: 'bar'
+                },
+                title: {
+                text: 'Stacked bar chart'
+                },
+                xAxis: {
+                categories: ['Apples', 'Oranges', 'Pears', 'Grapes', 'Bananas']
+                },
+                yAxis: {
+                min: 0,
+                title: {
+                text: 'Total fruit consumption'
+                }
+                },
+                legend: {
+                reversed: true
+                },
+                plotOptions: {
+                series: {
+                stacking: 'normal'
+                }
+                },
+                series: [{
+                name: 'John',
+                data: [5, 3, 4, 7, 2]
+                }, {
+                name: 'Jane',
+                data: [2, 2, 3, 2, 1]
+                }, {
+                name: 'Joe',
+                data: [3, 4, 4, 2, 5]
+                }]
+                });
+                });
+                &lt;/script&gt;
+            </code></pre>
 
             <br>
         </div>

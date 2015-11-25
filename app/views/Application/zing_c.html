@@ -1,6 +1,9 @@
 #{extends 'main.html' /}
 #{set title:'Stacked Area with ZingChart' /}
 <head>
+    <script src="/public/javascripts/highlight.min.js"></script>
+    <link href="/public/stylesheets/default.min.css" rel="stylesheet" />
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 <body>
@@ -229,6 +232,218 @@
         </div>
 
         <div id="code" class="tab-pane fade">
+            <pre><code class="xml">
+
+                &lt;div id='myChart'&gt;&lt;/div&gt;
+                &lt;script&gt;
+                zingchart.THEME = "classic";
+                var myConfig = {
+                "background-color": "#f5f8f4",
+                "type": "area",
+                "title": {
+                "text": "Customer Survey Response Quality",
+                "text-align": "center",
+                "font-color": "#5b5b5b",
+                "font-size": "18px",
+                "padding": "10px",
+                "background-color": "none"
+                },
+                "plotarea": {
+                "margin": "15% 10% 30% 15%"
+                },
+                "scale-x": {
+                "values": [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sept",
+                "Oct",
+                "Nov",
+                "Dec"
+                ],
+                "label": {
+                "text": "Surveys per Month",
+                "font-color": "#5b5b5b"
+                },
+                "line-style": "solid",
+                "line-width": "1px",
+                "line-color": "#5b5b5b",
+                "guide": {
+                "line-style": "solid",
+                "line-width": "1px",
+                "line-color": "#5b5b5b"
+                },
+                "tick": {
+                "line-style": "solid",
+                "line-width": "1px",
+                "line-color": "#5b5b5b"
+                }
+                },
+                "scale-y": {
+                "min-value": 0,
+                "max-value": 100,
+                "step": 20,
+                "format": "%v%",
+                "label": {
+                "text": "Surveys per Quality Guidelines",
+                "font-color": "#5b5b5b"
+                },
+                "line-style": "solid",
+                "line-width": "1px",
+                "line-color": "#5b5b5b",
+                "guide": {
+                "line-style": "solid",
+                "line-width": "1px",
+                "line-color": "#5b5b5b"
+                },
+                "tick": {
+                "line-style": "solid",
+                "line-width": "1px",
+                "line-color": "#5b5b5b"
+                }
+                },
+                "plot": {
+                "stacked": true,
+                "stack-type": "100%",
+                "active-area": true
+                },
+                "legend": {
+                "layout": "float",
+                "margin": "85% auto auto auto",
+                "toggle-action": "remove",
+                "shadow": 0,
+                "marker": {
+                "type": "match",
+                "show-line": true,
+                "line-width": 4,
+                "shadow": "none"
+                }
+                },
+                "tooltip": {
+                "text": "%t Surveys: %v&lt;br&gt;Percent of Surveys for %k: %npv%",
+                "decimals": 0,
+                "shadow": 0,
+                "border-radius": 5
+                },
+                "series": [
+                {
+                "values": [
+                116,
+                125,
+                109,
+                86,
+                76,
+                95,
+                85,
+                77,
+                101,
+                90,
+                87,
+                62
+                ],
+                "text": "Poor",
+                "line-color": "#67b3b4",
+                "marker": {
+                "background-color": "#93c2b7",
+                "border-color": "#67b3b4",
+                "border-width": "2px",
+                "shadow": false
+                },
+                "background-color": "#93c2b7"
+                },
+                {
+                "values": [
+                195,
+                206,
+                215,
+                140,
+                185,
+                176,
+                184,
+                190,
+                110,
+                174,
+                155,
+                165
+                ],
+                "text": "Moderate",
+                "line-color": "#2a8ea6",
+                "marker": {
+                "background-color": "#19a6b1",
+                "border-color": "#2a8ea6",
+                "border-width": "2px",
+                "shadow": false
+                },
+                "background-color": "#19a6b1"
+                },
+                {
+                "values": [
+                223,
+                284,
+                268,
+                274,
+                230,
+                199,
+                185,
+                208,
+                248,
+                295,
+                210,
+                225
+                ],
+                "text": "Good",
+                "line-color": "#416a9b",
+                "marker": {
+                "background-color": "#3e7ba8",
+                "border-color": "#416a9b",
+                "border-width": "2px",
+                "shadow": false
+                },
+                "background-color": "#3e7ba8"
+                },
+                {
+                "values": [
+                185,
+                175,
+                168,
+                154,
+                198,
+                175,
+                124,
+                145,
+                168,
+                174,
+                154,
+                125
+                ],
+                "text": "Excellent",
+                "line-color": "#3e3970",
+                "marker": {
+                "background-color": "#495a95",
+                "border-color": "#3e3970",
+                "border-width": "2px",
+                "shadow": false
+                },
+                "background-color": "#495a95"
+                }
+                ]
+                };
+
+                zingchart.render({
+                id: 'myChart',
+                data: myConfig,
+                height: 500,
+                width: 725
+                });
+                &lt;/script&gt;
+
+
+            </code></pre>
             <br>
         </div>
     </div>

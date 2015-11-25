@@ -1,6 +1,9 @@
 #{extends 'main.html' /}
 #{set title:'Time Line with Timesheet.js' /}
 <head>
+    <script src="/public/javascripts/highlight.min.js"></script>
+    <link href="/public/stylesheets/default.min.css" rel="stylesheet" />
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 <body>
@@ -37,8 +40,7 @@
         </div>
 
         <div id="code" class="tab-pane fade">
-        <pre>
-            <code>
+        <pre><code class="xml">
                 <!DOCTYPE html>
                 &lt;!DOCTYPE html&gt;
                 &lt;html lang="en"&gt;
@@ -86,8 +88,7 @@
                     &lt;/script&gt;
                 &lt;/body&gt;
                 &lt;/html&gt;
-            </code>
-        </pre>
+        </code></pre>
             <br>
         </div>
     </div>
