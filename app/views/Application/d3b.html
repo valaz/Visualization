@@ -1,0 +1,191 @@
+#{extends 'main.html' /}
+#{set title:'Radial Reingold–Tilford Tree with D3.js' /}
+<head>
+*{<style type="text/css"></style>}*
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example2">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code2">code</a></li>
+
+    </ul>
+    <div class="tab-content">
+
+        <div id="example2" class="tab-pane fade in active">
+            <div id="ex2"></div>
+            <style>
+                .node circle {
+                    fill: #fff;
+                    stroke: steelblue;
+                    stroke-width: 1.5px;
+                }
+
+                .node {
+                    font: 10px sans-serif;
+                }
+
+                .link {
+                    fill: none;
+                    stroke: #ccc;
+                    stroke-width: 1.5px;
+                }
+
+            </style>
+            <script>
+
+                var diameter = 960;
+
+                var tree = d3.layout.tree()
+                        .size([360, diameter / 2 - 120])
+                        .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+
+                var diagonal = d3.svg.diagonal.radial()
+                        .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+
+                var svg = d3.select("#ex2").append("svg")
+                        .attr("width", diameter)
+                        .attr("height", diameter - 150)
+                        .append("g")
+                        .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
+
+                d3.json("/public/files/flare.json", function(error, root) {
+                    if (error) throw error;
+
+                    var nodes = tree.nodes(root),
+                            links = tree.links(nodes);
+
+                    var link = svg.selectAll(".link")
+                            .data(links)
+                            .enter().append("path")
+                            .attr("class", "link")
+                            .attr("d", diagonal);
+
+                    var node = svg.selectAll(".node")
+                            .data(nodes)
+                            .enter().append("g")
+                            .attr("class", "node")
+                            .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
+
+                    node.append("circle")
+                            .attr("r", 4.5);
+
+                    node.append("text")
+                            .attr("dy", ".31em")
+                            .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+                            .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+                            .text(function(d) { return d.name; });
+                });
+
+                d3.select(self.frameElement).style("height", diameter - 150 + "px");
+
+            </script>
+        </div>
+
+        <div id="code2" class="tab-pane fade">
+                <pre><code class="html xml"><span class="doctype">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span
+        class="value">"utf-8"</span>&gt;</span>
+<span class="tag">&lt;<span class="title">style</span>&gt;</span><span class="css">
+
+<span class="class">.node</span> <span class="tag">circle</span> <span class="rules">{
+  <span class="rule"><span class="attribute">fill</span>:<span class="value"> <span class="hexcolor">#fff</span></span>;</span>
+  <span class="rule"><span class="attribute">stroke</span>:<span class="value"> steelblue</span>;</span>
+  <span class="rule"><span class="attribute">stroke-width</span>:<span class="value"> <span class="number">1.5</span>px</span>;</span>
+<span class="rule">}</span></span>
+
+<span class="class">.node</span> <span class="rules">{
+  <span class="rule"><span class="attribute">font</span>:<span class="value"> <span class="number">10</span>px sans-serif</span>;</span>
+<span class="rule">}</span></span>
+
+<span class="class">.link</span> <span class="rules">{
+  <span class="rule"><span class="attribute">fill</span>:<span class="value"> none</span>;</span>
+  <span class="rule"><span class="attribute">stroke</span>:<span class="value"> <span
+          class="hexcolor">#ccc</span></span>;</span>
+  <span class="rule"><span class="attribute">stroke-width</span>:<span class="value"> <span class="number">1.5</span>px</span>;</span>
+<span class="rule">}</span></span>
+
+</span><span class="tag">&lt;/<span class="title">style</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span
+        class="value">"//d3js.org/d3.v3.min.js"</span>&gt;</span><span
+        class="javascript"></span><span class="tag">&lt;/<span
+        class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+
+<span class="keyword">var</span> diameter = <span class="number">960</span>;
+
+<span class="keyword">var</span> tree = d3.layout.tree()
+    .size([<span class="number">360</span>, diameter / <span class="number">2</span> - <span class="number">120</span>])
+    .separation(<span class="function"><span class="keyword">function</span><span class="params">(a, b)</span> {</span> <span
+                            class="keyword">return</span> (a.parent == b.parent ? <span class="number">1</span> : <span
+                            class="number">2</span>) / a.depth; });
+
+<span class="keyword">var</span> diagonal = d3.svg.diagonal.radial()
+    .projection(<span class="function"><span class="keyword">function</span><span
+                            class="params">(d)</span> {</span> <span class="keyword">return</span> [d.y, d.x / <span
+                            class="number">180</span> * Math.PI]; });
+
+<span class="keyword">var</span> svg = d3.select(<span class="string">"body"</span>).append(<span
+                            class="string">"svg"</span>)
+    .attr(<span class="string">"width"</span>, diameter)
+    .attr(<span class="string">"height"</span>, diameter - <span class="number">150</span>)
+  .append(<span class="string">"g"</span>)
+    .attr(<span class="string">"transform"</span>, <span class="string">"translate("</span> + diameter / <span
+                            class="number">2</span> + <span class="string">","</span> + diameter / <span class="number">2</span> + <span
+                            class="string">")"</span>);
+
+d3.json(<span class="string">"flare.json"</span>, <span class="function"><span class="keyword">function</span><span
+                            class="params">(error, root)</span> {</span>
+  <span class="keyword">if</span> (error) <span class="keyword">throw</span> error;
+
+  <span class="keyword">var</span> nodes = tree.nodes(root),
+      links = tree.links(nodes);
+
+  <span class="keyword">var</span> link = svg.selectAll(<span class="string">".link"</span>)
+      .data(links)
+    .enter().append(<span class="string">"path"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"link"</span>)
+      .attr(<span class="string">"d"</span>, diagonal);
+
+  <span class="keyword">var</span> node = svg.selectAll(<span class="string">".node"</span>)
+      .data(nodes)
+    .enter().append(<span class="string">"g"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"node"</span>)
+      .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span
+                            class="params">(d)</span> {</span> <span class="keyword">return</span> <span class="string">"rotate("</span> + (d.x - <span
+                            class="number">90</span>) + <span class="string">")translate("</span> + d.y + <span
+                            class="string">")"</span>; })
+
+  node.append(<span class="string">"circle"</span>)
+      .attr(<span class="string">"r"</span>, <span class="number">4.5</span>);
+
+  node.append(<span class="string">"text"</span>)
+      .attr(<span class="string">"dy"</span>, <span class="string">".31em"</span>)
+      .attr(<span class="string">"text-anchor"</span>, <span class="function"><span class="keyword">function</span><span
+                            class="params">(d)</span> {</span> <span class="keyword">return</span> d.x &lt; <span
+                            class="number">180</span> ? <span class="string">"start"</span> : <span
+                            class="string">"end"</span>; })
+      .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span
+                            class="params">(d)</span> {</span> <span class="keyword">return</span> d.x &lt; <span
+                            class="number">180</span> ? <span class="string">"translate(8)"</span> : <span
+                            class="string">"rotate(180)translate(-8)"</span>; })
+      .text(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span
+                            class="keyword">return</span> d.name; });
+});
+
+d3.select(self.frameElement).style(<span class="string">"height"</span>, diameter - <span
+                            class="number">150</span> + <span class="string">"px"</span>);
+
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+                </code></pre>
+
+            <br>
+        </div>
+    </div>
+
+</div>
+</body>

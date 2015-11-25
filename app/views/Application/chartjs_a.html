@@ -1,0 +1,67 @@
+#{extends 'main.html' /}
+#{set title:'Line Chart with Chart.js' /}
+<head>
+<script>
+    require(['/public/javascripts/Chart'], function(Chart){
+        // Use Chart.js as normal here.
+
+        // Chart.noConflict restores the Chart global variable to it's previous owner
+        // The function returns what was previously Chart, allowing you to reassign.
+        var Chartjs = Chart.noConflict();
+        Chart.defaults.global.responsive = true;
+    });
+</script>
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code">code</a></li>
+
+    </ul>
+    <div class="tab-content">
+
+        <div id="example" class="tab-pane fade in active">
+            <canvas id="myChart" class="col-md-12"></canvas>
+            <script>
+                var data = {
+                    labels: ["January", "February", "March", "April", "May", "June", "July"],
+                    datasets: [
+                        {
+                            label: "My First dataset",
+                            fillColor: "rgba(220,220,220,0.2)",
+                            strokeColor: "rgba(220,220,220,1)",
+                            pointColor: "rgba(220,220,220,1)",
+                            pointStrokeColor: "#fff",
+                            pointHighlightFill: "#fff",
+                            pointHighlightStroke: "rgba(220,220,220,1)",
+                            data: [65, 59, 80, 81, 56, 55, 40]
+                        },
+                        {
+                            label: "My Second dataset",
+                            fillColor: "rgba(151,187,205,0.2)",
+                            strokeColor: "rgba(151,187,205,1)",
+                            pointColor: "rgba(151,187,205,1)",
+                            pointStrokeColor: "#fff",
+                            pointHighlightFill: "#fff",
+                            pointHighlightStroke: "rgba(151,187,205,1)",
+                            data: [28, 48, 40, 19, 86, 27, 90]
+                        }
+                    ]
+                };
+                var ctx = $("#myChart").get(0).getContext("2d");
+                var myLineChart = new Chart(ctx).Line(data);
+            </script>
+            <br>
+        </div>
+
+        <div id="code" class="tab-pane fade">
+            <br>
+        </div>
+    </div>
+
+</div>
+</body>

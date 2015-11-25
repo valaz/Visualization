@@ -1,0 +1,69 @@
+#{extends 'main.html' /}
+#{set title:'Stacked Bar Chart with Highcharts.js' /}
+<head>
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code">code</a></li>
+
+    </ul>
+
+    <div class="tab-content">
+
+        <div id="example" class="tab-pane fade in active">
+            <div id="container" class="col-md-12" style="margin: 0 auto"></div>
+            <script>
+                $(function () {
+                    $('#container').highcharts({
+                        chart: {
+                            type: 'bar'
+                        },
+                        title: {
+                            text: 'Stacked bar chart'
+                        },
+                        xAxis: {
+                            categories: ['Apples', 'Oranges', 'Pears', 'Grapes', 'Bananas']
+                        },
+                        yAxis: {
+                            min: 0,
+                            title: {
+                                text: 'Total fruit consumption'
+                            }
+                        },
+                        legend: {
+                            reversed: true
+                        },
+                        plotOptions: {
+                            series: {
+                                stacking: 'normal'
+                            }
+                        },
+                        series: [{
+                            name: 'John',
+                            data: [5, 3, 4, 7, 2]
+                        }, {
+                            name: 'Jane',
+                            data: [2, 2, 3, 2, 1]
+                        }, {
+                            name: 'Joe',
+                            data: [3, 4, 4, 2, 5]
+                        }]
+                    });
+                });
+            </script>
+            <br>
+        </div>
+
+        <div id="code" class="tab-pane fade">
+
+            <br>
+        </div>
+    </div>
+
+</div>
+</body>

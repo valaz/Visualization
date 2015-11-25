@@ -1,0 +1,170 @@
+#{extends 'main.html' /}
+#{set title:'Zoomable Sunburst with D3.js' /}
+<head>
+*{<style type="text/css"></style>}*
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example4">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code4">code</a></li>
+
+    </ul>
+    <div class="tab-content">
+
+        <div id="example4" class="tab-pane fade in active">
+            <div id="ex4"></div>
+            <style>
+
+                path {
+                    stroke: #fff;
+                    fill-rule: evenodd;
+                }
+
+            </style>
+            <script>
+
+                var width = 960,
+                        height = 700,
+                        radius = Math.min(width, height) / 2;
+
+                var x = d3.scale.linear()
+                        .range([0, 2 * Math.PI]);
+
+                var y = d3.scale.sqrt()
+                        .range([0, radius]);
+
+                var color = d3.scale.category20c();
+
+                var svg = d3.select("#ex4").append("svg")
+                        .attr("width", width)
+                        .attr("height", height)
+                        .append("g")
+                        .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
+
+                var partition = d3.layout.partition()
+                        .value(function(d) { return d.size; });
+
+                var arc = d3.svg.arc()
+                        .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
+                        .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); })
+                        .innerRadius(function(d) { return Math.max(0, y(d.y)); })
+                        .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
+
+                d3.json("/public/files/flare.json", function(error, root) {
+                    if (error) throw error;
+
+                    var path = svg.selectAll("path")
+                            .data(partition.nodes(root))
+                            .enter().append("path")
+                            .attr("d", arc)
+                            .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+                            .on("click", click);
+
+                    function click(d) {
+                        path.transition()
+                                .duration(750)
+                                .attrTween("d", arcTween(d));
+                    }
+                });
+
+                d3.select(self.frameElement).style("height", height + "px");
+
+                // Interpolate the scales!
+                function arcTween(d) {
+                    var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+                            yd = d3.interpolate(y.domain(), [d.y, 1]),
+                            yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
+                    return function(d, i) {
+                        return i
+                                ? function(t) { return arc(d); }
+                                : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
+                    };
+                }
+            </script>
+        </div>
+
+        <div id="code4" class="tab-pane fade">
+<pre><code class="html xml"><span class="doctype">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+<span class="tag">&lt;<span class="title">style</span>&gt;</span><span class="css">
+
+<span class="tag">path</span> <span class="rules">{
+  <span class="rule"><span class="attribute">stroke</span>:<span class="value"> <span class="hexcolor">#fff</span></span>;</span>
+  <span class="rule"><span class="attribute">fill-rule</span>:<span class="value"> evenodd</span>;</span>
+<span class="rule">}</span></span>
+
+</span><span class="tag">&lt;/<span class="title">style</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"//d3js.org/d3.v3.min.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+
+<span class="keyword">var</span> width = <span class="number">960</span>,
+    height = <span class="number">700</span>,
+    radius = Math.min(width, height) / <span class="number">2</span>;
+
+<span class="keyword">var</span> x = d3.scale.linear()
+    .range([<span class="number">0</span>, <span class="number">2</span> * Math.PI]);
+
+<span class="keyword">var</span> y = d3.scale.sqrt()
+    .range([<span class="number">0</span>, radius]);
+
+<span class="keyword">var</span> color = d3.scale.category20c();
+
+<span class="keyword">var</span> svg = d3.select(<span class="string">"body"</span>).append(<span class="string">"svg"</span>)
+    .attr(<span class="string">"width"</span>, width)
+    .attr(<span class="string">"height"</span>, height)
+  .append(<span class="string">"g"</span>)
+    .attr(<span class="string">"transform"</span>, <span class="string">"translate("</span> + width / <span class="number">2</span> + <span class="string">","</span> + (height / <span class="number">2</span> + <span class="number">10</span>) + <span class="string">")"</span>);
+
+<span class="keyword">var</span> partition = d3.layout.partition()
+    .value(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> d.size; });
+
+<span class="keyword">var</span> arc = d3.svg.arc()
+    .startAngle(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> Math.max(<span class="number">0</span>, Math.min(<span class="number">2</span> * Math.PI, x(d.x))); })
+    .endAngle(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> Math.max(<span class="number">0</span>, Math.min(<span class="number">2</span> * Math.PI, x(d.x + d.dx))); })
+    .innerRadius(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> Math.max(<span class="number">0</span>, y(d.y)); })
+    .outerRadius(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> Math.max(<span class="number">0</span>, y(d.y + d.dy)); });
+
+d3.json(<span class="string">"/mbostock/raw/4063550/flare.json"</span>, <span class="function"><span class="keyword">function</span><span class="params">(error, root)</span> {</span>
+  <span class="keyword">if</span> (error) <span class="keyword">throw</span> error;
+
+  <span class="keyword">var</span> path = svg.selectAll(<span class="string">"path"</span>)
+      .data(partition.nodes(root))
+    .enter().append(<span class="string">"path"</span>)
+      .attr(<span class="string">"d"</span>, arc)
+      .style(<span class="string">"fill"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> color((d.children ? d : d.parent).name); })
+      .on(<span class="string">"click"</span>, click);
+
+  <span class="function"><span class="keyword">function</span> <span class="title">click</span><span class="params">(d)</span> {</span>
+    path.transition()
+      .duration(<span class="number">750</span>)
+      .attrTween(<span class="string">"d"</span>, arcTween(d));
+  }
+});
+
+d3.select(self.frameElement).style(<span class="string">"height"</span>, height + <span class="string">"px"</span>);
+
+<span class="comment">// Interpolate the scales!</span>
+<span class="function"><span class="keyword">function</span> <span class="title">arcTween</span><span class="params">(d)</span> {</span>
+  <span class="keyword">var</span> xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+      yd = d3.interpolate(y.domain(), [d.y, <span class="number">1</span>]),
+      yr = d3.interpolate(y.range(), [d.y ? <span class="number">20</span> : <span class="number">0</span>, radius]);
+  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span><span class="params">(d, i)</span> {</span>
+    <span class="keyword">return</span> i
+        ? <span class="function"><span class="keyword">function</span><span class="params">(t)</span> {</span> <span class="keyword">return</span> arc(d); }
+        : <span class="function"><span class="keyword">function</span><span class="params">(t)</span> {</span> x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); <span class="keyword">return</span> arc(d); };
+  };
+}
+
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+</code></pre>
+        </div>
+
+    </div>
+
+</div>
+</body>

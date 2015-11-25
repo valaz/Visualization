@@ -1,0 +1,363 @@
+#{extends 'main.html' /}
+#{set title:'Collapsible Tree with D3.js' /}
+<head>
+*{<style type="text/css"></style>}*
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example3">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code3">code</a></li>
+
+    </ul>
+    <div class="tab-content">
+
+        <div id="example3" class="tab-pane fade in active">
+            <div id="ex3"></div>
+            <style>
+                .node {
+                    cursor: pointer;
+                }
+
+                .node circle {
+                    fill: #fff;
+                    stroke: steelblue;
+                    stroke-width: 1.5px;
+                }
+
+                .node text {
+                    font: 10px sans-serif;
+                }
+
+                .link {
+                    fill: none;
+                    stroke: #ccc;
+                    stroke-width: 1.5px;
+                }
+
+            </style>
+            <script>
+
+                var margin = {top: 20, right: 120, bottom: 20, left: 120},
+                        width = 960 - margin.right - margin.left,
+                        height = 800 - margin.top - margin.bottom;
+
+                var i = 0,
+                        duration = 750,
+                        root;
+
+                var tree = d3.layout.tree()
+                        .size([height, width]);
+
+                var diagonal = d3.svg.diagonal()
+                        .projection(function(d) { return [d.y, d.x]; });
+
+                var svg = d3.select("#ex3").append("svg")
+                        .attr("width", width + margin.right + margin.left)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                d3.json("/public/files/flare.json", function(error, flare) {
+                    if (error) throw error;
+
+                    root = flare;
+                    root.x0 = height / 2;
+                    root.y0 = 0;
+
+                    function collapse(d) {
+                        if (d.children) {
+                            d._children = d.children;
+                            d._children.forEach(collapse);
+                            d.children = null;
+                        }
+                    }
+
+                    root.children.forEach(collapse);
+                    update(root);
+                });
+
+                d3.select(self.frameElement).style("height", "800px");
+
+                function update(source) {
+
+                    // Compute the new tree layout.
+                    var nodes = tree.nodes(root).reverse(),
+                            links = tree.links(nodes);
+
+                    // Normalize for fixed-depth.
+                    nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+                    // Update the nodes…
+                    var node = svg.selectAll("g.node")
+                            .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+                    // Enter any new nodes at the parent's previous position.
+                    var nodeEnter = node.enter().append("g")
+                            .attr("class", "node")
+                            .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+                            .on("click", click);
+
+                    nodeEnter.append("circle")
+                            .attr("r", 1e-6)
+                            .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+                    nodeEnter.append("text")
+                            .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+                            .attr("dy", ".35em")
+                            .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+                            .text(function(d) { return d.name; })
+                            .style("fill-opacity", 1e-6);
+
+                    // Transition nodes to their new position.
+                    var nodeUpdate = node.transition()
+                            .duration(duration)
+                            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+                    nodeUpdate.select("circle")
+                            .attr("r", 4.5)
+                            .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+                    nodeUpdate.select("text")
+                            .style("fill-opacity", 1);
+
+                    // Transition exiting nodes to the parent's new position.
+                    var nodeExit = node.exit().transition()
+                            .duration(duration)
+                            .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+                            .remove();
+
+                    nodeExit.select("circle")
+                            .attr("r", 1e-6);
+
+                    nodeExit.select("text")
+                            .style("fill-opacity", 1e-6);
+
+                    // Update the links…
+                    var link = svg.selectAll("path.link")
+                            .data(links, function(d) { return d.target.id; });
+
+                    // Enter any new links at the parent's previous position.
+                    link.enter().insert("path", "g")
+                            .attr("class", "link")
+                            .attr("d", function(d) {
+                                var o = {x: source.x0, y: source.y0};
+                                return diagonal({source: o, target: o});
+                            });
+
+                    // Transition links to their new position.
+                    link.transition()
+                            .duration(duration)
+                            .attr("d", diagonal);
+
+                    // Transition exiting nodes to the parent's new position.
+                    link.exit().transition()
+                            .duration(duration)
+                            .attr("d", function(d) {
+                                var o = {x: source.x, y: source.y};
+                                return diagonal({source: o, target: o});
+                            })
+                            .remove();
+
+                    // Stash the old positions for transition.
+                    nodes.forEach(function(d) {
+                        d.x0 = d.x;
+                        d.y0 = d.y;
+                    });
+                }
+
+                // Toggle children on click.
+                function click(d) {
+                    if (d.children) {
+                        d._children = d.children;
+                        d.children = null;
+                    } else {
+                        d.children = d._children;
+                        d._children = null;
+                    }
+                    update(d);
+                }
+
+            </script>
+        </div>
+
+        <div id="code3" class="tab-pane fade">
+            <pre><code class="html xml"><span class="doctype">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+<span class="tag">&lt;<span class="title">style</span>&gt;</span><span class="css">
+
+<span class="class">.node</span> <span class="rules">{
+  <span class="rule"><span class="attribute">cursor</span>:<span class="value"> pointer</span>;</span>
+<span class="rule">}</span></span>
+
+<span class="class">.node</span> <span class="tag">circle</span> <span class="rules">{
+  <span class="rule"><span class="attribute">fill</span>:<span class="value"> <span class="hexcolor">#fff</span></span>;</span>
+  <span class="rule"><span class="attribute">stroke</span>:<span class="value"> steelblue</span>;</span>
+  <span class="rule"><span class="attribute">stroke-width</span>:<span class="value"> <span class="number">1.5</span>px</span>;</span>
+<span class="rule">}</span></span>
+
+<span class="class">.node</span> <span class="tag">text</span> <span class="rules">{
+  <span class="rule"><span class="attribute">font</span>:<span class="value"> <span class="number">10</span>px sans-serif</span>;</span>
+<span class="rule">}</span></span>
+
+<span class="class">.link</span> <span class="rules">{
+  <span class="rule"><span class="attribute">fill</span>:<span class="value"> none</span>;</span>
+  <span class="rule"><span class="attribute">stroke</span>:<span class="value"> <span class="hexcolor">#ccc</span></span>;</span>
+  <span class="rule"><span class="attribute">stroke-width</span>:<span class="value"> <span class="number">1.5</span>px</span>;</span>
+<span class="rule">}</span></span>
+
+</span><span class="tag">&lt;/<span class="title">style</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"//d3js.org/d3.v3.min.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+
+<span class="keyword">var</span> margin = {top: <span class="number">20</span>, right: <span class="number">120</span>, bottom: <span class="number">20</span>, left: <span class="number">120</span>},
+    width = <span class="number">960</span> - margin.right - margin.left,
+    height = <span class="number">800</span> - margin.top - margin.bottom;
+
+<span class="keyword">var</span> i = <span class="number">0</span>,
+    duration = <span class="number">750</span>,
+    root;
+
+<span class="keyword">var</span> tree = d3.layout.tree()
+    .size([height, width]);
+
+<span class="keyword">var</span> diagonal = d3.svg.diagonal()
+    .projection(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> [d.y, d.x]; });
+
+<span class="keyword">var</span> svg = d3.select(<span class="string">"body"</span>).append(<span class="string">"svg"</span>)
+    .attr(<span class="string">"width"</span>, width + margin.right + margin.left)
+    .attr(<span class="string">"height"</span>, height + margin.top + margin.bottom)
+  .append(<span class="string">"g"</span>)
+    .attr(<span class="string">"transform"</span>, <span class="string">"translate("</span> + margin.left + <span class="string">","</span> + margin.top + <span class="string">")"</span>);
+
+d3.json(<span class="string">"/mbostock/raw/4063550/flare.json"</span>, <span class="function"><span class="keyword">function</span><span class="params">(error, flare)</span> {</span>
+  <span class="keyword">if</span> (error) <span class="keyword">throw</span> error;
+
+  root = flare;
+  root.x0 = height / <span class="number">2</span>;
+  root.y0 = <span class="number">0</span>;
+
+  <span class="function"><span class="keyword">function</span> <span class="title">collapse</span><span class="params">(d)</span> {</span>
+    <span class="keyword">if</span> (d.children) {
+      d._children = d.children;
+      d._children.forEach(collapse);
+      d.children = <span class="literal">null</span>;
+    }
+  }
+
+  root.children.forEach(collapse);
+  update(root);
+});
+
+d3.select(self.frameElement).style(<span class="string">"height"</span>, <span class="string">"800px"</span>);
+
+<span class="function"><span class="keyword">function</span> <span class="title">update</span><span class="params">(source)</span> {</span>
+
+  <span class="comment">// Compute the new tree layout.</span>
+  <span class="keyword">var</span> nodes = tree.nodes(root).reverse(),
+      links = tree.links(nodes);
+
+  <span class="comment">// Normalize for fixed-depth.</span>
+  nodes.forEach(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> d.y = d.depth * <span class="number">180</span>; });
+
+  <span class="comment">// Update the nodes…</span>
+  <span class="keyword">var</span> node = svg.selectAll(<span class="string">"g.node"</span>)
+      .data(nodes, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> d.id || (d.id = ++i); });
+
+  <span class="comment">// Enter any new nodes at the parent's previous position.</span>
+  <span class="keyword">var</span> nodeEnter = node.enter().append(<span class="string">"g"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"node"</span>)
+      .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> <span class="string">"translate("</span> + source.y0 + <span class="string">","</span> + source.x0 + <span class="string">")"</span>; })
+      .on(<span class="string">"click"</span>, click);
+
+  nodeEnter.append(<span class="string">"circle"</span>)
+      .attr(<span class="string">"r"</span>, <span class="number">1</span>e-<span class="number">6</span>)
+      .style(<span class="string">"fill"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> d._children ? <span class="string">"lightsteelblue"</span> : <span class="string">"#fff"</span>; });
+
+  nodeEnter.append(<span class="string">"text"</span>)
+      .attr(<span class="string">"x"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> d.children || d._children ? -<span class="number">10</span> : <span class="number">10</span>; })
+      .attr(<span class="string">"dy"</span>, <span class="string">".35em"</span>)
+      .attr(<span class="string">"text-anchor"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> d.children || d._children ? <span class="string">"end"</span> : <span class="string">"start"</span>; })
+      .text(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> d.name; })
+      .style(<span class="string">"fill-opacity"</span>, <span class="number">1</span>e-<span class="number">6</span>);
+
+  <span class="comment">// Transition nodes to their new position.</span>
+  <span class="keyword">var</span> nodeUpdate = node.transition()
+      .duration(duration)
+      .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> <span class="string">"translate("</span> + d.y + <span class="string">","</span> + d.x + <span class="string">")"</span>; });
+
+  nodeUpdate.select(<span class="string">"circle"</span>)
+      .attr(<span class="string">"r"</span>, <span class="number">4.5</span>)
+      .style(<span class="string">"fill"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> d._children ? <span class="string">"lightsteelblue"</span> : <span class="string">"#fff"</span>; });
+
+  nodeUpdate.select(<span class="string">"text"</span>)
+      .style(<span class="string">"fill-opacity"</span>, <span class="number">1</span>);
+
+  <span class="comment">// Transition exiting nodes to the parent's new position.</span>
+  <span class="keyword">var</span> nodeExit = node.exit().transition()
+      .duration(duration)
+      .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> <span class="string">"translate("</span> + source.y + <span class="string">","</span> + source.x + <span class="string">")"</span>; })
+      .remove();
+
+  nodeExit.select(<span class="string">"circle"</span>)
+      .attr(<span class="string">"r"</span>, <span class="number">1</span>e-<span class="number">6</span>);
+
+  nodeExit.select(<span class="string">"text"</span>)
+      .style(<span class="string">"fill-opacity"</span>, <span class="number">1</span>e-<span class="number">6</span>);
+
+  <span class="comment">// Update the links…</span>
+  <span class="keyword">var</span> link = svg.selectAll(<span class="string">"path.link"</span>)
+      .data(links, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span class="keyword">return</span> d.target.id; });
+
+  <span class="comment">// Enter any new links at the parent's previous position.</span>
+  link.enter().insert(<span class="string">"path"</span>, <span class="string">"g"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"link"</span>)
+      .attr(<span class="string">"d"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span>
+        <span class="keyword">var</span> o = {x: source.x0, y: source.y0};
+        <span class="keyword">return</span> diagonal({source: o, target: o});
+      });
+
+  <span class="comment">// Transition links to their new position.</span>
+  link.transition()
+      .duration(duration)
+      .attr(<span class="string">"d"</span>, diagonal);
+
+  <span class="comment">// Transition exiting nodes to the parent's new position.</span>
+  link.exit().transition()
+      .duration(duration)
+      .attr(<span class="string">"d"</span>, <span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span>
+        <span class="keyword">var</span> o = {x: source.x, y: source.y};
+        <span class="keyword">return</span> diagonal({source: o, target: o});
+      })
+      .remove();
+
+  <span class="comment">// Stash the old positions for transition.</span>
+  nodes.forEach(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span>
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+}
+
+<span class="comment">// Toggle children on click.</span>
+<span class="function"><span class="keyword">function</span> <span class="title">click</span><span class="params">(d)</span> {</span>
+  <span class="keyword">if</span> (d.children) {
+    d._children = d.children;
+    d.children = <span class="literal">null</span>;
+  } <span class="keyword">else</span> {
+    d.children = d._children;
+    d._children = <span class="literal">null</span>;
+  }
+  update(d);
+}
+
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+            </code></pre>
+        </div>
+    </div>
+
+</div>
+</body>

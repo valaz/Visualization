@@ -1,0 +1,422 @@
+#{extends 'main.html' /}
+#{set title:'Diverging Stacked Bar Chart with D3.js' /}
+<head>
+*{<style type="text/css"></style>}*
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example5">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code5">code</a></li>
+
+    </ul>
+    <div class="tab-content">
+
+        <div id="example5" class="tab-pane fade in active">
+            <div id="ex5"></div>
+            <style>
+                .axis path,
+                .axis line {
+                    fill: none;
+                    stroke: #000;
+                    shape-rendering: crispEdges;
+                }
+            </style>
+
+            <div id="figure" style="margin-bottom: 50px;"></div>
+
+            <script>
+
+                var margin = {top: 50, right: 20, bottom: 10, left: 65},
+                        width = 800 - margin.left - margin.right,
+                        height = 500 - margin.top - margin.bottom;
+
+                var y = d3.scale.ordinal()
+                        .rangeRoundBands([0, height], .3);
+
+                var x = d3.scale.linear()
+                        .rangeRound([0, width]);
+
+                var color = d3.scale.ordinal()
+                        .range(["#c7001e", "#f6a580", "#cccccc", "#92c6db", "#086fad"]);
+
+                var xAxis = d3.svg.axis()
+                        .scale(x)
+                        .orient("top");
+
+                var yAxis = d3.svg.axis()
+                        .scale(y)
+                        .orient("left")
+
+                var svg = d3.select("#figure").append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .attr("id", "d3-plot")
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                color.domain(["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"]);
+
+                d3.csv("/public/files/raw_data.csv", function (error, data) {
+
+                    data.forEach(function (d) {
+                        // calc percentages
+                        d["Strongly disagree"] = +d[1] * 100 / d.N;
+                        d["Disagree"] = +d[2] * 100 / d.N;
+                        d["Neither agree nor disagree"] = +d[3] * 100 / d.N;
+                        d["Agree"] = +d[4] * 100 / d.N;
+                        d["Strongly agree"] = +d[5] * 100 / d.N;
+                        var x0 = -1 * (d["Neither agree nor disagree"] / 2 + d["Disagree"] + d["Strongly disagree"]);
+                        var idx = 0;
+                        d.boxes = color.domain().map(function (name) {
+                            return {name: name, x0: x0, x1: x0 += +d[name], N: +d.N, n: +d[idx += 1]};
+                        });
+                    });
+
+                    var min_val = d3.min(data, function (d) {
+                        return d.boxes["0"].x0;
+                    });
+
+                    var max_val = d3.max(data, function (d) {
+                        return d.boxes["4"].x1;
+                    });
+
+                    x.domain([min_val, max_val]).nice();
+                    y.domain(data.map(function (d) {
+                        return d.Question;
+                    }));
+
+                    svg.append("g")
+                            .attr("class", "x axis")
+                            .call(xAxis);
+
+                    svg.append("g")
+                            .attr("class", "y axis")
+                            .call(yAxis)
+
+                    var vakken = svg.selectAll(".question")
+                            .data(data)
+                            .enter().append("g")
+                            .attr("class", "bar")
+                            .attr("transform", function (d) {
+                                return "translate(0," + y(d.Question) + ")";
+                            });
+
+                    var bars = vakken.selectAll("rect")
+                            .data(function (d) {
+                                return d.boxes;
+                            })
+                            .enter().append("g").attr("class", "subbar");
+
+                    bars.append("rect")
+                            .attr("height", y.rangeBand())
+                            .attr("x", function (d) {
+                                return x(d.x0);
+                            })
+                            .attr("width", function (d) {
+                                return x(d.x1) - x(d.x0);
+                            })
+                            .style("fill", function (d) {
+                                return color(d.name);
+                            });
+
+                    bars.append("text")
+                            .attr("x", function (d) {
+                                return x(d.x0);
+                            })
+                            .attr("y", y.rangeBand() / 2)
+                            .attr("dy", "0.5em")
+                            .attr("dx", "0.5em")
+                            .style("font", "10px sans-serif")
+                            .style("text-anchor", "begin")
+                            .text(function (d) {
+                                return d.n !== 0 && (d.x1 - d.x0) > 3 ? d.n : ""
+                            });
+
+                    vakken.insert("rect", ":first-child")
+                            .attr("height", y.rangeBand())
+                            .attr("x", "1")
+                            .attr("width", width)
+                            .attr("fill-opacity", "0.5")
+                            .style("fill", "#F5F5F5")
+                            .attr("class", function (d, index) {
+                                return index%2 == 0 ? "even" : "uneven";
+                            });
+
+                    svg.append("g")
+                            .attr("class", "y axis")
+                            .append("line")
+                            .attr("x1", x(0))
+                            .attr("x2", x(0))
+                            .attr("y2", height);
+
+                    var startp = svg.append("g").attr("class", "legendbox").attr("id", "mylegendbox");
+                    // this is not nice, we should calculate the bounding box and use that
+                    var legend_tabs = [0, 120, 200, 375, 450];
+                    var legend = startp.selectAll(".legend")
+                            .data(color.domain().slice())
+                            .enter().append("g")
+                            .attr("class", "legend")
+                            .attr("transform", function (d, i) {
+                                return "translate(" + legend_tabs[i] + ",-45)";
+                            });
+
+                    legend.append("rect")
+                            .attr("x", 0)
+                            .attr("width", 18)
+                            .attr("height", 18)
+                            .style("fill", color);
+
+                    legend.append("text")
+                            .attr("x", 22)
+                            .attr("y", 9)
+                            .attr("dy", ".35em")
+                            .style("text-anchor", "begin")
+                            .style("font", "10px sans-serif")
+                            .text(function (d) {
+                                return d;
+                            });
+
+                    d3.selectAll(".axis path")
+                            .style("fill", "none")
+                            .style("stroke", "#000")
+                            .style("shape-rendering", "crispEdges")
+
+                    d3.selectAll(".axis line")
+                            .style("fill", "none")
+                            .style("stroke", "#000")
+                            .style("shape-rendering", "crispEdges")
+
+                    var movesize = width / 2 - startp.node().getBBox().width / 2;
+                    d3.selectAll(".legendbox").attr("transform", "translate(" + movesize + ",0)");
+
+
+                });
+            </script>
+        </div>
+
+        <div id="code5" class="tab-pane fade">
+<pre><code class="html xml"><span class="doctype">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span>&gt;</span>
+<span class="tag">&lt;<span class="title">head</span>&gt;</span>
+<span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+<span class="tag">&lt;<span class="title">title</span>&gt;</span>Diverging Stacked Bar Chart with D3.js<span
+        class="tag">&lt;/<span class="title">title</span>&gt;</span>
+<span class="tag">&lt;<span class="title">style</span>&gt;</span><span class="css">
+
+<span class="tag">body</span> <span class="rules">{
+  <span class="rule"><span class="attribute">font</span>:<span class="value"> <span class="number">10</span>px sans-serif</span>;</span>
+<span class="rule">}</span></span>
+
+<span class="class">.axis</span> <span class="tag">path</span>,
+<span class="class">.axis</span> <span class="tag">line</span> <span class="rules">{
+    <span class="rule"><span class="attribute">fill</span>:<span class="value"> none</span>;</span>
+    <span class="rule"><span class="attribute">stroke</span>:<span class="value"> <span
+            class="number">#000</span></span>;</span>
+    <span class="rule"><span class="attribute">shape-rendering</span>:<span class="value"> crispEdges</span>;</span>
+<span class="rule">}</span></span>
+
+</span><span class="tag">&lt;/<span class="title">style</span>&gt;</span>
+
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"</span>&gt;</span><span
+        class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+
+
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+
+<span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span
+        class="value">"figure"</span> <span class="attribute">style</span>=<span class="value">"margin-bottom: 50px;"</span>&gt;</span><span
+        class="tag">&lt;/<span class="title">div</span>&gt;</span>
+
+
+<span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+
+<span class="keyword">var</span> margin = {top: <span class="number">50</span>, right: <span class="number">20</span>, bottom: <span
+            class="number">10</span>, left: <span class="number">65</span>},
+    width = <span class="number">800</span> - margin.left - margin.right,
+    height = <span class="number">500</span> - margin.top - margin.bottom;
+
+<span class="keyword">var</span> y = d3.scale.ordinal()
+    .rangeRoundBands([<span class="number">0</span>, height], .<span class="number">3</span>);
+
+<span class="keyword">var</span> x = d3.scale.linear()
+    .rangeRound([<span class="number">0</span>, width]);
+
+<span class="keyword">var</span> color = d3.scale.ordinal()
+    .range([<span class="string">"#c7001e"</span>, <span class="string">"#f6a580"</span>, <span
+            class="string">"#cccccc"</span>, <span class="string">"#92c6db"</span>, <span
+            class="string">"#086fad"</span>]);
+
+<span class="keyword">var</span> xAxis = d3.svg.axis()
+    .scale(x)
+    .orient(<span class="string">"top"</span>);
+
+<span class="keyword">var</span> yAxis = d3.svg.axis()
+    .scale(y)
+    .orient(<span class="string">"left"</span>)
+
+<span class="keyword">var</span> svg = d3.select(<span class="string">"#figure"</span>).append(<span class="string">"svg"</span>)
+    .attr(<span class="string">"width"</span>, width + margin.left + margin.right)
+    .attr(<span class="string">"height"</span>, height + margin.top + margin.bottom)
+    .attr(<span class="string">"id"</span>, <span class="string">"d3-plot"</span>)
+  .append(<span class="string">"g"</span>)
+    .attr(<span class="string">"transform"</span>, <span class="string">"translate("</span> + margin.left + <span
+            class="string">","</span> + margin.top + <span class="string">")"</span>);
+
+  color.domain([<span class="string">"Strongly disagree"</span>, <span class="string">"Disagree"</span>, <span
+            class="string">"Neither agree nor disagree"</span>, <span class="string">"Agree"</span>, <span
+            class="string">"Strongly agree"</span>]);
+
+  d3.csv(<span class="string">"raw_data.csv"</span>, <span class="function"><span class="keyword">function</span><span
+            class="params">(error, data)</span> {</span>
+
+  data.forEach(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span>
+    <span class="comment">// calc percentages</span>
+    d[<span class="string">"Strongly disagree"</span>] = +d[<span class="number">1</span>]*<span
+            class="number">100</span>/d.N;
+    d[<span class="string">"Disagree"</span>] = +d[<span class="number">2</span>]*<span class="number">100</span>/d.N;
+    d[<span class="string">"Neither agree nor disagree"</span>] = +d[<span class="number">3</span>]*<span
+            class="number">100</span>/d.N;
+    d[<span class="string">"Agree"</span>] = +d[<span class="number">4</span>]*<span class="number">100</span>/d.N;
+    d[<span class="string">"Strongly agree"</span>] = +d[<span class="number">5</span>]*<span class="number">100</span>/d.N;
+    <span class="keyword">var</span> x0 = -<span class="number">1</span>*(d[<span class="string">"Neither agree nor disagree"</span>]/<span
+            class="number">2</span>+d[<span class="string">"Disagree"</span>]+d[<span
+            class="string">"Strongly disagree"</span>]);
+    <span class="keyword">var</span> idx = <span class="number">0</span>;
+    d.boxes = color.domain().map(<span class="function"><span class="keyword">function</span><span
+            class="params">(name)</span> {</span> <span class="keyword">return</span> {name: name, x0: x0, x1: x0 += +d[name], N: +d.N, n: +d[idx += <span
+            class="number">1</span>]}; });
+  });
+
+  <span class="keyword">var</span> min_val = d3.min(data, <span class="function"><span
+            class="keyword">function</span><span class="params">(d)</span> {</span>
+          <span class="keyword">return</span> d.boxes[<span class="string">"0"</span>].x0;
+          });
+
+  <span class="keyword">var</span> max_val = d3.max(data, <span class="function"><span
+            class="keyword">function</span><span class="params">(d)</span> {</span>
+          <span class="keyword">return</span> d.boxes[<span class="string">"4"</span>].x1;
+          });
+
+  x.domain([min_val, max_val]).nice();
+  y.domain(data.map(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span
+            class="keyword">return</span> d.Question; }));
+
+  svg.append(<span class="string">"g"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"x axis"</span>)
+      .call(xAxis);
+
+  svg.append(<span class="string">"g"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"y axis"</span>)
+      .call(yAxis)
+
+  <span class="keyword">var</span> vakken = svg.selectAll(<span class="string">".question"</span>)
+      .data(data)
+    .enter().append(<span class="string">"g"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"bar"</span>)
+      .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span
+            class="params">(d)</span> {</span> <span class="keyword">return</span> <span
+            class="string">"translate(0,"</span> + y(d.Question) + <span class="string">")"</span>; });
+
+  <span class="keyword">var</span> bars = vakken.selectAll(<span class="string">"rect"</span>)
+      .data(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span
+            class="keyword">return</span> d.boxes; })
+    .enter().append(<span class="string">"g"</span>).attr(<span class="string">"class"</span>, <span class="string">"subbar"</span>);
+
+  bars.append(<span class="string">"rect"</span>)
+      .attr(<span class="string">"height"</span>, y.rangeBand())
+      .attr(<span class="string">"x"</span>, <span class="function"><span class="keyword">function</span><span
+            class="params">(d)</span> {</span> <span class="keyword">return</span> x(d.x0); })
+      .attr(<span class="string">"width"</span>, <span class="function"><span class="keyword">function</span><span
+            class="params">(d)</span> {</span> <span class="keyword">return</span> x(d.x1) - x(d.x0); })
+      .style(<span class="string">"fill"</span>, <span class="function"><span class="keyword">function</span><span
+            class="params">(d)</span> {</span> <span class="keyword">return</span> color(d.name); });
+
+  bars.append(<span class="string">"text"</span>)
+      .attr(<span class="string">"x"</span>, <span class="function"><span class="keyword">function</span><span
+            class="params">(d)</span> {</span> <span class="keyword">return</span> x(d.x0); })
+      .attr(<span class="string">"y"</span>, y.rangeBand()/<span class="number">2</span>)
+      .attr(<span class="string">"dy"</span>, <span class="string">"0.5em"</span>)
+      .attr(<span class="string">"dx"</span>, <span class="string">"0.5em"</span>)
+      .style(<span class="string">"font"</span> ,<span class="string">"10px sans-serif"</span>)
+      .style(<span class="string">"text-anchor"</span>, <span class="string">"begin"</span>)
+      .text(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span
+            class="keyword">return</span> d.n !== <span class="number">0</span> &amp;&amp; (d.x1-d.x0)&gt;<span
+            class="number">3</span> ? d.n : <span class="string">""</span> });
+
+  vakken.insert(<span class="string">"rect"</span>,<span class="string">":first-child"</span>)
+      .attr(<span class="string">"height"</span>, y.rangeBand())
+      .attr(<span class="string">"x"</span>, <span class="string">"1"</span>)
+      .attr(<span class="string">"width"</span>, width)
+      .attr(<span class="string">"fill-opacity"</span>, <span class="string">"0.5"</span>)
+      .style(<span class="string">"fill"</span>, <span class="string">"#F5F5F5"</span>)
+      .attr(<span class="string">"class"</span>, <span class="function"><span class="keyword">function</span><span
+            class="params">(d,index)</span> {</span> <span class="keyword">return</span> index%<span
+            class="number">2</span>==<span class="number">0</span> ? <span class="string">"even"</span> : <span
+            class="string">"uneven"</span>; });
+
+  svg.append(<span class="string">"g"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"y axis"</span>)
+  .append(<span class="string">"line"</span>)
+      .attr(<span class="string">"x1"</span>, x(<span class="number">0</span>))
+      .attr(<span class="string">"x2"</span>, x(<span class="number">0</span>))
+      .attr(<span class="string">"y2"</span>, height);
+
+  <span class="keyword">var</span> startp = svg.append(<span class="string">"g"</span>).attr(<span class="string">"class"</span>, <span
+            class="string">"legendbox"</span>).attr(<span class="string">"id"</span>, <span
+            class="string">"mylegendbox"</span>);
+  <span class="comment">// this is not nice, we should calculate the bounding box and use that</span>
+  <span class="keyword">var</span> legend_tabs = [<span class="number">0</span>, <span class="number">120</span>, <span
+            class="number">200</span>, <span class="number">375</span>, <span class="number">450</span>];
+  <span class="keyword">var</span> legend = startp.selectAll(<span class="string">".legend"</span>)
+      .data(color.domain().slice())
+    .enter().append(<span class="string">"g"</span>)
+      .attr(<span class="string">"class"</span>, <span class="string">"legend"</span>)
+      .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span
+            class="params">(d, i)</span> {</span> <span class="keyword">return</span> <span
+            class="string">"translate("</span> + legend_tabs[i] + <span class="string">",-45)"</span>; });
+
+  legend.append(<span class="string">"rect"</span>)
+      .attr(<span class="string">"x"</span>, <span class="number">0</span>)
+      .attr(<span class="string">"width"</span>, <span class="number">18</span>)
+      .attr(<span class="string">"height"</span>, <span class="number">18</span>)
+      .style(<span class="string">"fill"</span>, color);
+
+  legend.append(<span class="string">"text"</span>)
+      .attr(<span class="string">"x"</span>, <span class="number">22</span>)
+      .attr(<span class="string">"y"</span>, <span class="number">9</span>)
+      .attr(<span class="string">"dy"</span>, <span class="string">".35em"</span>)
+      .style(<span class="string">"text-anchor"</span>, <span class="string">"begin"</span>)
+      .style(<span class="string">"font"</span> ,<span class="string">"10px sans-serif"</span>)
+      .text(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span
+            class="keyword">return</span> d; });
+
+  d3.selectAll(<span class="string">".axis path"</span>)
+      .style(<span class="string">"fill"</span>, <span class="string">"none"</span>)
+      .style(<span class="string">"stroke"</span>, <span class="string">"#000"</span>)
+      .style(<span class="string">"shape-rendering"</span>, <span class="string">"crispEdges"</span>)
+
+  d3.selectAll(<span class="string">".axis line"</span>)
+      .style(<span class="string">"fill"</span>, <span class="string">"none"</span>)
+      .style(<span class="string">"stroke"</span>, <span class="string">"#000"</span>)
+      .style(<span class="string">"shape-rendering"</span>, <span class="string">"crispEdges"</span>)
+
+  <span class="keyword">var</span> movesize = width/<span class="number">2</span> - startp.node().getBBox().width/<span
+            class="number">2</span>;
+  d3.selectAll(<span class="string">".legendbox"</span>).attr(<span class="string">"transform"</span>, <span
+            class="string">"translate("</span> + movesize  + <span class="string">",0)"</span>);
+
+
+});
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+
+<span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span></code></pre>
+        </div>
+    </div>
+
+</div>
+</body>

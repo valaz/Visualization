@@ -1,0 +1,39 @@
+#{extends 'main.html' /}
+#{set title:'Graph with Sigma.js' /}
+<head>
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code">code</a></li>
+
+    </ul>
+    <div id="sigma-container" style="height: 500px; width: 500px"></div>
+    <script src="/public/javascripts/sigma.min.js"></script>
+    <script src="/public/javascripts/sigma.parsers.json.min.js"></script>
+
+    <script>
+        sigma.parsers.json('public.files.data.json', {
+            container: 'container',
+            settings: {
+                defaultNodeColor: '#ec5148'
+            }
+        });
+    </script>
+    <div class="tab-content">
+
+        <div id="example" class="tab-pane fade in active">
+            <br>
+        </div>
+
+        <div id="code" class="tab-pane fade">
+            <br>
+        </div>
+    </div>
+
+</div>
+</body>

@@ -1,0 +1,289 @@
+#{extends 'main.html' /}
+#{set title:'Chord Diagram with D3.js' /}
+<head>
+*{<style type="text/css"></style>}*
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example1">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code1">code</a></li>
+
+    </ul>
+    <div class="tab-content">
+
+        <div id="example1" class="tab-pane fade in active">
+            <style>
+                .chord path {
+                    fill-opacity: .67;
+                    stroke: #000;
+                    stroke-width: .5px;
+                }
+            </style>
+
+            <div id="ex1" class="col-md-12"></div>
+            <script>
+
+                // From http://mkweb.bcgsc.ca/circos/guide/tables/
+                var matrix = [
+                    [11975, 5871, 8916, 2868],
+                    [1951, 10048, 2060, 6171],
+                    [8010, 16145, 8090, 8045],
+                    [1013, 990, 940, 6907]
+                ];
+
+                var chord = d3.layout.chord()
+                        .padding(.05)
+                        .sortSubgroups(d3.descending)
+                        .matrix(matrix);
+
+                var width = 960,
+                        height = 500,
+                        innerRadius = Math.min(width, height) * .41,
+                        outerRadius = innerRadius * 1.1;
+
+                var fill = d3.scale.ordinal()
+                        .domain(d3.range(4))
+                        .range(["#000000", "#FFDD89", "#957244", "#F26223"]);
+
+                var svg = d3.select("#ex1").append("svg")
+                        .attr("width", width)
+                        .attr("height", height)
+                        .append("g")
+                        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+                svg.append("g").selectAll("path")
+                        .data(chord.groups)
+                        .enter().append("path")
+                        .style("fill", function (d) {
+                            return fill(d.index);
+                        })
+                        .style("stroke", function (d) {
+                            return fill(d.index);
+                        })
+                        .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
+                        .on("mouseover", fade(.1))
+                        .on("mouseout", fade(1));
+
+                var ticks = svg.append("g").selectAll("g")
+                        .data(chord.groups)
+                        .enter().append("g").selectAll("g")
+                        .data(groupTicks)
+                        .enter().append("g")
+                        .attr("transform", function (d) {
+                            return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
+                                    + "translate(" + outerRadius + ",0)";
+                        });
+
+                ticks.append("line")
+                        .attr("x1", 1)
+                        .attr("y1", 0)
+                        .attr("x2", 5)
+                        .attr("y2", 0)
+                        .style("stroke", "#000");
+
+                ticks.append("text")
+                        .attr("x", 8)
+                        .attr("dy", ".35em")
+                        .attr("transform", function (d) {
+                            return d.angle > Math.PI ? "rotate(180)translate(-16)" : null;
+                        })
+                        .style("text-anchor", function (d) {
+                            return d.angle > Math.PI ? "end" : null;
+                        })
+                        .text(function (d) {
+                            return d.label;
+                        });
+
+                svg.append("g")
+                        .attr("class", "chord")
+                        .selectAll("path")
+                        .data(chord.chords)
+                        .enter().append("path")
+                        .attr("d", d3.svg.chord().radius(innerRadius))
+                        .style("fill", function (d) {
+                            return fill(d.target.index);
+                        })
+                        .style("opacity", 1);
+
+                // Returns an array of tick angles and labels, given a group.
+                function groupTicks(d) {
+                    var k = (d.endAngle - d.startAngle) / d.value;
+                    return d3.range(0, d.value, 1000).map(function (v, i) {
+                        return {
+                            angle: v * k + d.startAngle,
+                            label: i % 5 ? null : v / 1000 + "k"
+                        };
+                    });
+                }
+
+                // Returns an event handler for fading a given chord group.
+                function fade(opacity) {
+                    return function (g, i) {
+                        svg.selectAll(".chord path")
+                                .filter(function (d) {
+                                    return d.source.index != i && d.target.index != i;
+                                })
+                                .transition()
+                                .style("opacity", opacity);
+                    };
+                }
+            </script>
+            <br>
+        </div>
+
+        <div id="code1" class="tab-pane fade">
+
+            <pre><code class="html xml"><span class="doctype">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span
+        class="value">"utf-8"</span>&gt;</span>
+<span class="tag">&lt;<span class="title">style</span>&gt;</span><span class="css">
+
+<span class="tag">body</span> <span class="rules">{
+  <span class="rule"><span class="attribute">font</span>:<span class="value"> <span class="number">10</span>px sans-serif</span>;</span>
+<span class="rule">}</span></span>
+
+<span class="class">.chord</span> <span class="tag">path</span> <span class="rules">{
+  <span class="rule"><span class="attribute">fill-opacity</span>:<span class="value"> .<span
+          class="number">67</span></span>;</span>
+  <span class="rule"><span class="attribute">stroke</span>:<span class="value"> <span class="number">#000</span></span>;</span>
+  <span class="rule"><span class="attribute">stroke-width</span>:<span class="value"> .<span
+          class="number">5</span>px</span>;</span>
+<span class="rule">}</span></span>
+
+</span><span class="tag">&lt;/<span class="title">style</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span
+        class="value">"//d3js.org/d3.v3.min.js"</span>&gt;</span><span class="javascript"></span><span
+                        class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+
+<span class="comment">// From http://mkweb.bcgsc.ca/circos/guide/tables/</span>
+<span class="keyword">var</span> matrix = [
+  [<span class="number">11975</span>,  <span class="number">5871</span>, <span class="number">8916</span>, <span
+                        class="number">2868</span>],
+  [ <span class="number">1951</span>, <span class="number">10048</span>, <span class="number">2060</span>, <span
+                        class="number">6171</span>],
+  [ <span class="number">8010</span>, <span class="number">16145</span>, <span class="number">8090</span>, <span
+                        class="number">8045</span>],
+  [ <span class="number">1013</span>,   <span class="number">990</span>,  <span class="number">940</span>, <span
+                        class="number">6907</span>]
+];
+
+<span class="keyword">var</span> chord = d3.layout.chord()
+    .padding(.<span class="number">05</span>)
+    .sortSubgroups(d3.descending)
+    .matrix(matrix);
+
+<span class="keyword">var</span> width = <span class="number">960</span>,
+    height = <span class="number">500</span>,
+    innerRadius = Math.min(width, height) * .<span class="number">41</span>,
+    outerRadius = innerRadius * <span class="number">1.1</span>;
+
+<span class="keyword">var</span> fill = d3.scale.ordinal()
+    .domain(d3.range(<span class="number">4</span>))
+    .range([<span class="string">"#000000"</span>, <span class="string">"#FFDD89"</span>, <span
+                        class="string">"#957244"</span>, <span class="string">"#F26223"</span>]);
+
+<span class="keyword">var</span> svg = d3.select(<span class="string">"body"</span>).append(<span
+                        class="string">"svg"</span>)
+    .attr(<span class="string">"width"</span>, width)
+    .attr(<span class="string">"height"</span>, height)
+  .append(<span class="string">"g"</span>)
+    .attr(<span class="string">"transform"</span>, <span class="string">"translate("</span> + width / <span
+                        class="number">2</span> + <span class="string">","</span> + height / <span
+                        class="number">2</span> + <span class="string">")"</span>);
+
+svg.append(<span class="string">"g"</span>).selectAll(<span class="string">"path"</span>)
+    .data(chord.groups)
+  .enter().append(<span class="string">"path"</span>)
+    .style(<span class="string">"fill"</span>, <span class="function"><span class="keyword">function</span><span
+                        class="params">(d)</span> {</span> <span class="keyword">return</span> fill(d.index); })
+    .style(<span class="string">"stroke"</span>, <span class="function"><span class="keyword">function</span><span
+                        class="params">(d)</span> {</span> <span class="keyword">return</span> fill(d.index); })
+    .attr(<span class="string">"d"</span>, d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
+    .on(<span class="string">"mouseover"</span>, fade(.<span class="number">1</span>))
+    .on(<span class="string">"mouseout"</span>, fade(<span class="number">1</span>));
+
+<span class="keyword">var</span> ticks = svg.append(<span class="string">"g"</span>).selectAll(<span
+                        class="string">"g"</span>)
+    .data(chord.groups)
+  .enter().append(<span class="string">"g"</span>).selectAll(<span class="string">"g"</span>)
+    .data(groupTicks)
+  .enter().append(<span class="string">"g"</span>)
+    .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span
+                        class="params">(d)</span> {</span>
+      <span class="keyword">return</span> <span class="string">"rotate("</span> + (d.angle * <span
+                        class="number">180</span> / Math.PI - <span class="number">90</span>) + <span
+                        class="string">")"</span>
+          + <span class="string">"translate("</span> + outerRadius + <span class="string">",0)"</span>;
+    });
+
+ticks.append(<span class="string">"line"</span>)
+    .attr(<span class="string">"x1"</span>, <span class="number">1</span>)
+    .attr(<span class="string">"y1"</span>, <span class="number">0</span>)
+    .attr(<span class="string">"x2"</span>, <span class="number">5</span>)
+    .attr(<span class="string">"y2"</span>, <span class="number">0</span>)
+    .style(<span class="string">"stroke"</span>, <span class="string">"#000"</span>);
+
+ticks.append(<span class="string">"text"</span>)
+    .attr(<span class="string">"x"</span>, <span class="number">8</span>)
+    .attr(<span class="string">"dy"</span>, <span class="string">".35em"</span>)
+    .attr(<span class="string">"transform"</span>, <span class="function"><span class="keyword">function</span><span
+                        class="params">(d)</span> {</span> <span
+                        class="keyword">return</span> d.angle &gt; Math.PI ? <span class="string">"rotate(180)translate(-16)"</span> : <span
+                        class="literal">null</span>; })
+    .style(<span class="string">"text-anchor"</span>, <span class="function"><span class="keyword">function</span><span
+                        class="params">(d)</span> {</span> <span
+                        class="keyword">return</span> d.angle &gt; Math.PI ? <span class="string">"end"</span> : <span
+                        class="literal">null</span>; })
+    .text(<span class="function"><span class="keyword">function</span><span class="params">(d)</span> {</span> <span
+                        class="keyword">return</span> d.label; });
+
+svg.append(<span class="string">"g"</span>)
+    .attr(<span class="string">"class"</span>, <span class="string">"chord"</span>)
+  .selectAll(<span class="string">"path"</span>)
+    .data(chord.chords)
+  .enter().append(<span class="string">"path"</span>)
+    .attr(<span class="string">"d"</span>, d3.svg.chord().radius(innerRadius))
+    .style(<span class="string">"fill"</span>, <span class="function"><span class="keyword">function</span><span
+                        class="params">(d)</span> {</span> <span class="keyword">return</span> fill(d.target.index); })
+    .style(<span class="string">"opacity"</span>, <span class="number">1</span>);
+
+<span class="comment">// Returns an array of tick angles and labels, given a group.</span>
+<span class="function"><span class="keyword">function</span> <span class="title">groupTicks</span><span class="params">(d)</span> {</span>
+  <span class="keyword">var</span> k = (d.endAngle - d.startAngle) / d.value;
+  <span class="keyword">return</span> d3.range(<span class="number">0</span>, d.value, <span class="number">1000</span>).map(<span
+                        class="function"><span class="keyword">function</span><span
+                        class="params">(v, i)</span> {</span>
+    <span class="keyword">return</span> {
+      angle: v * k + d.startAngle,
+      label: i % <span class="number">5</span> ? <span class="literal">null</span> : v / <span
+                        class="number">1000</span> + <span class="string">"k"</span>
+    };
+  });
+}
+
+<span class="comment">// Returns an event handler for fading a given chord group.</span>
+<span class="function"><span class="keyword">function</span> <span class="title">fade</span><span class="params">(opacity)</span> {</span>
+  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span><span class="params">(g, i)</span> {</span>
+    svg.selectAll(<span class="string">".chord path"</span>)
+        .filter(<span class="function"><span class="keyword">function</span><span
+                        class="params">(d)</span> {</span> <span class="keyword">return</span> d.source.index != i &amp;&amp; d.target.index != i; })
+      .transition()
+        .style(<span class="string">"opacity"</span>, opacity);
+  };
+}
+
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+            </code>
+            </pre>
+            <br>
+        </div>
+    </div>
+
+</div>
+</body>
