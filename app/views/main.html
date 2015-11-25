@@ -36,6 +36,14 @@
         <script src="@{'/public/javascripts/lodash.min.js'}" type="text/javascript" charset="${_response_encoding}"></script>
         <script src="@{'/public/javascripts/backbone-min.js'}" type="text/javascript" charset="${_response_encoding}"></script>
         <script src="@{'/public/javascripts/joint.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+
+        <script src="@{'/public/javascripts/zingchart.min.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+
+        <script src="@{'/public/javascripts/amcharts.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+        <script src="@{'/public/javascripts/serial.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+        <script src="@{'/public/javascripts/light.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+        <script src="@{'/public/javascripts/dark.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+        <script src="@{'/public/javascripts/funnel.js'}" type="text/javascript" charset="${_response_encoding}"></script>
         #{get 'moreScripts' /}
     </head>
     <body>
@@ -94,6 +102,38 @@
                         </ul>
                     </li>
                     <li><a href="@{Application.timesheet()}">Timesheet.js</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Joint.js<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="@{Application.joint_a()}">Finite State Machines</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="@{Application.joint_b()}">ER Diagram</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="@{Application.joint_c()}">UML Class Diagram</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">ZingChart<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="@{Application.zing_a()}">Bar Chart</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="@{Application.zing_b()}">Multiseries Bar Chart</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="@{Application.zing_c()}">Stacked Area</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">AmCharts<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="@{Application.amchart_a()}">Column Chart</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="@{Application.amchart_b()}">Line Chart</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="@{Application.amchart_c()}">Pyramid Chart</a></li>
+                        </ul>
+                    </li>
                     <li><a href="@{Application.sigma()}">Sigma.js</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">

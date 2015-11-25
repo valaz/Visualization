@@ -1,0 +1,79 @@
+#{extends 'main.html' /}
+#{set title:'Pyramid Chart with AmCharts' /}
+<head>
+</head>
+
+<body>
+<div class="container">
+    <ul class="nav nav-tabs">
+
+        <li><a data-toggle="tab" href="#example">Example</a></li>
+
+        <li><a data-toggle="tab" href="#code">code</a></li>
+
+    </ul>
+
+    <div class="tab-content">
+
+        <div id="example" class="tab-pane fade in active">
+            <br>
+            <style>
+                #chartdiv {
+                    width		: 100%;
+                    height		: 500px;
+                    font-size	: 11px;
+                }
+            </style>
+            <div id="chartdiv"></div>
+            <script>
+                var chart = AmCharts.makeChart( "chartdiv", {
+                    "type": "funnel",
+                    "theme": "light",
+                    "dataProvider": [ {
+                        "title": "Website visits",
+                        "value": 300
+                    }, {
+                        "title": "Downloads",
+                        "value": 123
+                    }, {
+                        "title": "Requested price list",
+                        "value": 98
+                    }, {
+                        "title": "Contaced for more info",
+                        "value": 72
+                    }, {
+                        "title": "Purchased",
+                        "value": 35
+                    }, {
+                        "title": "Contacted for support",
+                        "value": 15
+                    }, {
+                        "title": "Purchased additional products",
+                        "value": 8
+                    } ],
+                    "balloon": {
+                        "fixedPosition": true
+                    },
+                    "valueField": "value",
+                    "titleField": "title",
+                    "marginRight": 240,
+                    "marginLeft": 50,
+                    "startX": -500,
+                    "rotate": true,
+                    "labelPosition": "right",
+                    "balloonText": "[[title]]: [[value]]n[[description]]",
+                    "export": {
+                        "enabled": true
+                    }
+                } );
+            </script>
+            <br>
+        </div>
+
+        <div id="code" class="tab-pane fade">
+            <br>
+        </div>
+    </div>
+
+</div>
+</body>

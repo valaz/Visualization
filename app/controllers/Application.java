@@ -61,4 +61,35 @@ public class Application extends Controller {
     public static void timesheet() {
         render();
     }
+
+    public static void joint_a() {
+        render();
+    }
+    public static void joint_b() {
+        render();
+    }
+    public static void joint_c() {
+        render();
+    }
+
+    public static void zing_a() {
+        render();
+    }
+    public static void zing_b() {
+        render();
+    }
+    public static void zing_c() {
+        render();
+    }
+
+    public static void amchart_a() {
+        render();
+    }
+    public static void amchart_b() {
+        render();
+    }
+    public static void amchart_c() {
+        render();
+    }
+
 }
